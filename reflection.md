@@ -1,17 +1,38 @@
 # PawPal+ Project Reflection
 
 ## 1. System Design
-
+For Pawpal project, I identified three main activities to be performed by the app, 
+1. Let a user enter basic owner + pet info
+2. Let a user add/edit tasks (duration + priority at minimum)
+3. Generate a daily schedule/plan based on constraints and priorities
 **a. Initial design**
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+Pet
+Attributes: name, species, age, special_needs
+Methods: get_summary()
+
+Owner
+Attributes: name, available_minutes, preferences
+Methods: get_available_time()
+
+CareTask
+Attributes: title, duration_minutes, priority, category, preferred_time
+Methods: is_high_priority(), get_summary()
+
+DailySchedule
+Attributes: owner, pet, tasks, planned_tasks
+Methods: add_task(), remove_task(), generate_plan(), explain_plan(), get_total_time()
+
 **b. Design changes**
 
 - Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Not yet, but maybe as i keepdoing it i will make changes, if necessary.
 
+- If yes, describe at least one change and why you made it.
+The only thing is that the AI generated another class for thescheduler which didn't make sense so i removed it.
 ---
 
 ## 2. Scheduling Logic and Tradeoffs
