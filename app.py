@@ -4,12 +4,11 @@ from pawpal_system import Task, Pet, Owner, Scheduler
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
+st.caption("A smart daily care planner for your pets.")
 
 # --- Session State Initialization ---
-# Persists Owner and Scheduler across reruns so data isn't lost on every click.
 if "owner" not in st.session_state:
     st.session_state.owner = None
-
 if "scheduler" not in st.session_state:
     st.session_state.scheduler = None
 
@@ -25,9 +24,8 @@ with col2:
     available_minutes = st.number_input("Time available today (minutes)", min_value=10, max_value=480, value=90)
 
 if st.button("Set Owner"):
-    # Creates a new Owner and stores it in session_state so it persists.
     st.session_state.owner = Owner(owner_name, available_minutes)
-    st.session_state.scheduler = None  # Reset scheduler when owner changes
+    st.session_state.scheduler = None
     st.success(f"Owner set: {owner_name} ({available_minutes} min available)")
 
 st.divider()
@@ -47,10 +45,9 @@ else:
         age = st.number_input("Age (years)", min_value=0, max_value=30, value=3)
 
     if st.button("Add Pet"):
-        # Calls owner.add_pet() — the Owner class handles storing the Pet.
         new_pet = Pet(pet_name, species, age)
         st.session_state.owner.add_pet(new_pet)
-        st.success(f"Added pet: {pet_name} the {species}")
+        st.success(f"Added {pet_name} the {species}!")
 
     if st.session_state.owner.pets:
         st.write("**Current pets:**")
@@ -73,18 +70,22 @@ else:
     with col2:
         task_title = st.text_input("Task description", value="Morning walk")
 
-    col3, col4, col5 = st.columns(3)
+    col3, col4, col5, col6 = st.columns(4)
     with col3:
-        duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
+        duration = st.number_input("Duration (min)", min_value=1, max_value=240, value=20)
     with col4:
         frequency = st.selectbox("Frequency", ["daily", "weekly", "as needed"])
     with col5:
         priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+    with col6:
+        start_time = st.text_input("Start time (HH:MM)", value="", placeholder="e.g. 08:00")
 
     if st.button("Add Task"):
-        # Finds the right Pet object and calls pet.add_task() to attach the Task.
         target_pet = next(p for p in st.session_state.owner.pets if p.name == selected_pet)
-        target_pet.add_task(Task(task_title, duration, frequency, priority))
+        target_pet.add_task(Task(
+            task_title, duration, frequency, priority,
+            start_time=start_time if start_time.strip() else None
+        ))
         st.success(f"Added '{task_title}' to {selected_pet}")
 
     all_tasks = st.session_state.owner.get_all_tasks()
@@ -99,35 +100,75 @@ else:
                     "Duration (min)": t.duration_minutes,
                     "Frequency": t.frequency,
                     "Priority": t.priority,
+                    "Start time": t.start_time or "—",
                 })
         st.table(rows)
 
 st.divider()
 
 # --- Section 4: Generate Schedule ---
-st.subheader("4. Generate Schedule")
+st.subheader("4. Today's Schedule")
 
 if st.session_state.owner is None or not st.session_state.owner.get_all_tasks():
     st.info("Add an owner, pets, and tasks before generating a schedule.")
 else:
     if st.button("Generate Schedule"):
-        # Creates a Scheduler with the Owner, then calls generate_plan().
         st.session_state.scheduler = Scheduler(st.session_state.owner)
         st.session_state.scheduler.generate_plan()
 
     if st.session_state.scheduler and st.session_state.scheduler.planned_tasks:
         scheduler = st.session_state.scheduler
-        st.success(f"Plan generated! {scheduler.get_total_time()} min scheduled, {scheduler.get_available_time()} min remaining.")
+
+        # --- Time budget summary ---
+        total = scheduler.get_total_time()
+        remaining = scheduler.get_available_time()
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Tasks scheduled", len(scheduler.planned_tasks))
+        col2.metric("Time used (min)", total)
+        col3.metric("Time remaining (min)", remaining)
+
+        # --- Conflict warnings ---
+        conflicts = scheduler.get_conflicts()
+        if conflicts:
+            st.warning("**Scheduling conflicts detected** — review before starting your day:")
+            for c in conflicts:
+                st.warning(c)
+        else:
+            st.success("No scheduling conflicts.")
+
+        # --- View toggle: by priority or by time ---
+        view = st.radio("View schedule by:", ["Priority order", "Time order"], horizontal=True)
+
+        if view == "Time order":
+            tasks_to_show = scheduler.sort_by_time()
+        else:
+            tasks_to_show = scheduler.planned_tasks
 
         rows = []
-        for i, task in enumerate(scheduler.planned_tasks, 1):
+        for i, task in enumerate(tasks_to_show, 1):
             pet_name = next(p.name for p in st.session_state.owner.pets if task in p.tasks)
             rows.append({
                 "#": i,
                 "Pet": pet_name,
                 "Task": task.description,
+                "Start": task.start_time or "—",
                 "Duration (min)": task.duration_minutes,
                 "Priority": task.priority,
+                "Frequency": task.frequency,
                 "Status": "done" if task.completed else "pending",
             })
         st.table(rows)
+
+        # --- Filter by pet ---
+        st.write("**Filter by pet:**")
+        pet_names = [p.name for p in st.session_state.owner.pets]
+        selected = st.selectbox("Show tasks for", ["All pets"] + pet_names, key="filter_pet")
+
+        if selected != "All pets":
+            filtered = scheduler.get_tasks_for_pet(selected)
+            if filtered:
+                st.write(f"{len(filtered)} task(s) for {selected}:")
+                for t in filtered:
+                    st.write(f"- {t.get_summary()}")
+            else:
+                st.info(f"No planned tasks for {selected}.")

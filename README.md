@@ -1,28 +1,35 @@
 # PawPal+ (Module 2 Project)
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+PawPal+ is a Streamlit app that helps a pet owner stay consistent with daily pet care. You enter your pets, add care tasks, and the app builds a smart daily schedule based on your available time, task priorities, and preferred time slots.
 
-## Scenario
+---
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+## Features
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+- **Priority-based scheduling** — the scheduler always places high-priority tasks first (medications, feeding), then medium, then low. Within the same priority level, shorter tasks are scheduled first to fit as many tasks as possible into the available time budget.
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+- **Sorting by time** — once a plan is generated, you can switch to a time-ordered view that sorts tasks chronologically by their scheduled start time (HH:MM format), so you see your day laid out in order.
 
-## What you will build
+- **Conflict detection** — if two tasks overlap in time (e.g. a 20-minute walk starting at 08:00 and an inhaler at 08:10), the app flags it as a warning before you start your day, rather than silently ignoring it.
 
-Your final app should:
+- **Recurring task automation** — marking a daily task complete automatically creates the next occurrence due tomorrow. Weekly tasks reappear in 7 days. "As needed" tasks don't recur automatically.
 
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
+- **Filtering by pet** — when you have multiple pets, you can filter the schedule to see only the tasks belonging to a specific pet.
 
-## Getting started
+- **Time budget tracking** — the app shows how many minutes are scheduled vs. how many are still available, so you always know if your plan is realistic.
+
+- **Multi-pet support** — one owner can manage multiple pets, each with their own independent task lists.
+
+---
+
+## 📸 Demo
+
+<a href="app_pic2.png" target="_blank"><img src='app_pic2.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+<a href="app_pic1.png" target="_blank"><img src='app_pic1.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+
+---
+
+## Getting Started
 
 ### Setup
 
@@ -31,6 +38,20 @@ python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
+
+### Run the app
+
+```bash
+streamlit run app.py
+```
+
+### Run the demo script
+
+```bash
+python main.py
+```
+
+---
 
 ## Testing PawPal+
 
@@ -46,7 +67,7 @@ The conflict detection tests were important too — I wanted to make sure two ta
 
 **All 14 tests passed** — screenshot below as evidence:
 
-![alt text](Capture.PNG)
+![Test results](Capture.PNG)
 
 **Confidence level: 4/5**
 
@@ -64,7 +85,9 @@ The scheduler goes beyond a simple priority list. Key features:
 - **Filtering** — filter planned tasks by pet name, completion status (pending/done), or view all.
 - **Conflict detection** — `get_conflicts()` checks every pair of timed tasks for overlapping time ranges and returns human-readable warnings without crashing the app.
 
-### Suggested workflow
+---
+
+## Suggested Workflow
 
 1. Read the scenario carefully and identify requirements and edge cases.
 2. Draft a UML diagram (classes, attributes, methods, relationships).
