@@ -32,6 +32,28 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Testing PawPal+
+
+To run the tests, make sure you're inside the project folder and run:
+
+```bash
+python -m pytest tests/ -v
+```
+
+I wrote 14 tests total covering the parts of the system I was most worried about breaking. The main things I tested were whether the scheduler actually respects the time budget, whether high-priority tasks end up before low-priority ones, and whether completing a daily or weekly task correctly creates a new one for the next day or next week. I also added a few edge cases like what happens when a pet has no tasks, or when a single task is longer than the entire time budget — both of these used to silently do nothing, so I wanted to make sure they still returned cleanly without crashing.
+
+The conflict detection tests were important too — I wanted to make sure two tasks starting at overlapping times would get flagged, but tasks that run back-to-back wouldn't be falsely reported as conflicts.
+
+**All 14 tests passed** — screenshot below as evidence:
+
+![alt text](Capture.PNG)
+
+**Confidence level: 4/5**
+
+I'm pretty confident the scheduling logic and recurrence work correctly. The main thing I'm not fully sure about yet is the Streamlit UI layer — I haven't written any automated tests for that side, so there could still be edge cases in how the app handles user input. That would be the next thing to tackle.
+
+---
+
 ## Smarter Scheduling
 
 The scheduler goes beyond a simple priority list. Key features:
