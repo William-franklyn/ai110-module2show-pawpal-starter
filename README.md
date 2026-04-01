@@ -32,6 +32,16 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Smarter Scheduling
+
+The scheduler goes beyond a simple priority list. Key features:
+
+- **Priority + duration sorting** — tasks are sorted high → medium → low priority; within the same priority, shorter tasks are scheduled first to fit more into the time budget.
+- **Preferred time slots** — tasks tagged `morning`, `afternoon`, or `evening` are ordered within their priority group accordingly.
+- **Recurring task automation** — when a `daily` task is marked complete, a new instance is automatically created due tomorrow (`today + timedelta(days=1)`). Weekly tasks recur in 7 days.
+- **Filtering** — filter planned tasks by pet name, completion status (pending/done), or view all.
+- **Conflict detection** — `get_conflicts()` checks every pair of timed tasks for overlapping time ranges and returns human-readable warnings without crashing the app.
+
 ### Suggested workflow
 
 1. Read the scenario carefully and identify requirements and edge cases.

@@ -47,6 +47,10 @@ The only thing is that the AI generated another class for thescheduler which did
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
+The scheduler uses a **greedy algorithm** — it picks tasks in priority order and adds each one if it fits within the remaining time budget. This means it does not backtrack. For example, if a 40-minute low-priority task is skipped because only 35 minutes remain, the scheduler will not go back and swap out an earlier medium-priority task to make room for it.
+
+This is a reasonable tradeoff for a daily pet care app because the number of tasks is small (typically under 20), so an optimal solution is not worth the added complexity. The greedy approach is fast, predictable, and easy to explain to the user — "high priority tasks always get scheduled first." A full optimization (e.g. dynamic programming knapsack) would be harder to debug and overkill for this use case.
+
 ---
 
 ## 3. AI Collaboration
